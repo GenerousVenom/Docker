@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  km-webapp:
+    container_name: km-webapp
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-https
+    volumes:
+      - ./phpkbv9-https:/var/www/html  
+    ports:
+      - 125:443
+  km-db:
+    container_name: km-db
+    image: mariadb:10.5.5
+    restart: always
+    env_file:
+      - ./env/mariadb.env
+    # environment:
+    #   MYSQL_ROOT_PASSWORD: 123qwe!@#QWE
+    #   MYSQL_DATABASE: km-db
+    volumes:
+      - ./km-db-https:/var/lib/mysql
+    ports:
+      - 3306:3306
+  km-interface:
+    container_name: km-grafana
+    image: grafana/grafana
+    # restart: always
+    command: command
+    volumes:
+      - ./km-grafana/config/grafana.ini:/etc/grafana/grafana.ini
+      - ./km-grafana/data:/var/lib/grafana
+      # - ./km-grafana/email:/usr/share/grafana/public/emails/
+    ports:
+      - 3000:3000
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:1.8.10
+    # restart: always
+    # command: supervisord -n && apt-get update && apt-get install -y nano
+    volumes:
+      - ./influxdb:/etc/influxdb
+      - influxdata:/var/lib/influxdb
+    ports:
+      - 8086:8086
+  
+volumes: 
+  influxdata:

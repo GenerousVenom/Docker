@@ -1,0 +1,35 @@
+FROM php:7.2-apache
+RUN echo "Thinh Phung"
+
+# Installing some basic packages
+RUN apt -y update
+RUN apt -y install nano
+RUN apt install dnsutils -y  
+RUN apt install net-tools -y && apt install iputils-ping -y
+RUN apt install traceroute -y
+
+# Installing some php's requirements
+RUN a2enmod rewrite headers
+RUN docker-php-ext-install mysqli
+RUN docker-php-ext-enable mysqli
+RUN apt-get update -y && apt-get install -y sendmail libpng-dev
+RUN docker-php-ext-install gd
+
+# Copy upload set up file for php
+COPY ./uploads.ini		/usr/local/etc/php/conf.d/uploads.ini
+
+RUN apt-get -y install libldap2-dev
+RUN rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
+RUN docker-php-ext-install ldap
+# EXPOSE 80       # If you just use http, you can stop here
+RUN echo "http setup has done"
+
+# Copy apache configuration file for using cert
+COPY ./000-default.conf		/etc/apache2/sites-available/000-default.conf
+RUN a2enmod ssl
+COPY ./svtech.com.vn.crt	/etc/apache2/ssl/ssl.crt
+COPY ./svtech.com.vn.key	/etc/apache2/ssl/ssl.key
+
+EXPOSE 443
+RUN echo "https setup has done"
